@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Would You Go On A Date With Me?</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #000;
+      color: #fff;
+      text-align: center;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .container {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .image-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    .image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+    
+    .content {
+      position: relative;
+      z-index: 2;
+      width: 90%;
+      max-width: 500px;
+      padding: 20px;
+    }
+    
+    .overlay-text {
+      font-size: 6vw;
+      font-weight: 600;
+      color: white;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+      margin-bottom: 8vh;
+      line-height: 1.4;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.4);
+      border-radius: 15px;
+    }
+    
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      background-color: #f04e4e;
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      font-size: 5.5vw;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      flex: 1;
+      min-width: 120px;
+      max-width: 45%;
+      transition: all 0.2s ease;
+    }
+    
+    .btn:hover, .btn:active {
+      background-color: #ff7070;
+      transform: scale(1.05);
+    }
+    
+    .btn:active {
+      transform: scale(0.98);
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    /* Responsive adjustments */
+    @media (min-width: 768px) {
+      .overlay-text {
+        font-size: 2.2rem;
+      }
+      .btn {
+        font-size: 1.4rem;
+        padding: 18px 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="image-container">
+      <img src="ASK.jpg" class="image" id="mainImage" alt="Romantic background image" />
+    </div>
+    <div class="content">
+      <div class="overlay-text" id="questionText">
+        WOULD YOU LIKE TO GO ON A DATE WITH ME?
+      </div>
+      <div class="buttons" id="buttons">
+        <button class="btn" onclick="handleAnswer('yes')">YES</button>
+        <button class="btn" onclick="handleAnswer('no')">NO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio elements for each page -->
+  <audio id="mainMusic" loop>
+    <source src="romantic_music.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+  
+  <audio id="yesMusic" loop>
+    <source src="happy_music.mp3" type="audio/mpeg">
+  </audio>
+  
+  <audio id="noMusic" loop>
+    <source src="sad_music.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // Prevent zooming on mobile
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    });
+    
+    // Audio elements
+    const mainMusic = document.getElementById('mainMusic');
+    const yesMusic = document.getElementById('yesMusic');
+    const noMusic = document.getElementById('noMusic');
+    const questionText = document.getElementById('questionText');
+    
+    // Set volumes
+    mainMusic.volume = 0.3;
+    yesMusic.volume = 0.3;
+    noMusic.volume = 0.3;
+    
+    // Handle Chrome's autoplay policy
+    function startMusic() {
+      const playPromise = mainMusic.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          document.body.addEventListener('click', function musicStarter() {
+            mainMusic.play();
+            document.body.removeEventListener('click', musicStarter);
+          }, { once: true });
+        });
+      }
+    }
+    
+    // Start music when page loads
+    window.addEventListener('DOMContentLoaded', startMusic);
+    window.addEventListener('load', startMusic);
+    setTimeout(startMusic, 1000);
+    
+    function handleAnswer(answer) {
+      const mainImage = document.getElementById('mainImage');
+      const buttons = document.getElementById('buttons');
+      const content = document.querySelector('.content');
+
+      // Fade out current music
+      if (!mainMusic.paused) {
+        const fadeOut = setInterval(() => {
+          if (mainMusic.volume > 0.1) {
+            mainMusic.volume -= 0.1;
+          } else {
+            mainMusic.pause();
+            mainMusic.volume = 0.3;
+            clearInterval(fadeOut);
+            changePage(answer);
+          }
+        }, 100);
+      } else {
+        changePage(answer);
+      }
+    }
+    
+    function changePage(answer) {
+      const mainImage = document.getElementById('mainImage');
+      const buttons = document.getElementById('buttons');
+      const questionText = document.getElementById('questionText');
+      const content = document.querySelector('.content');
+
+      content.style.transition = 'opacity 0.5s ease';
+      content.style.opacity = '0';
+      
+      setTimeout(() => {
+        buttons.classList.add('hidden');
+        
+        if (answer === 'yes') {
+          mainImage.src = 'YES.jpg';
+          questionText.innerHTML = "This isn't just a date—it's the beginning of something beautiful. I promise to make it unforgettable.";
+          
+          // Fade in yes music
+          yesMusic.volume = 0;
+          yesMusic.play();
+          const fadeIn = setInterval(() => {
+            if (yesMusic.volume < 0.3) {
+              yesMusic.volume += 0.05;
+            } else {
+              clearInterval(fadeIn);
+            }
+          }, 100);
+        } else {
+          mainImage.src = 'NO.jpg';
+          questionText.innerHTML = "Some stories aren't meant to be written... Still, thank you for being honest.";
+          
+          // Fade in no music
+          noMusic.volume = 0;
+          noMusic.play();
+          const fadeIn = setInterval(() => {
+            if (noMusic.volume < 0.3) {
+              noMusic.volume += 0.05;
+            } else {
+              clearInterval(fadeIn);
+            }
+          }, 100);
+        }
+        
+        content.style.opacity = '1';
+      }, 500);
+    }
+    
+    // Ensure images are loaded before showing to prevent flash
+    window.addEventListener('load', function() {
+      document.body.style.visibility = 'visible';
+    });
+  </script>
+</body>
+</html>
