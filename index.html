@@ -39,13 +39,27 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #000; /* Fallback if images load slowly */
     }
     
     .image {
-      width: 100%;
+      width: auto;
       height: 100%;
-      object-fit: cover;
-      object-position: center;
+      max-width: 100%;
+      object-fit: contain;
+      object-position: center center;
+    }
+    
+    /* Special handling for portrait mode on phones */
+    @media (orientation: portrait) {
+      .image {
+        width: 100%;
+        height: auto;
+        max-height: 100%;
+      }
     }
     
     .content {
@@ -104,7 +118,7 @@
       display: none;
     }
     
-    /* Responsive adjustments */
+    /* Responsive adjustments for tablets/desktops */
     @media (min-width: 768px) {
       .overlay-text {
         font-size: 2.2rem;
@@ -132,16 +146,13 @@
     </div>
   </div>
 
-  <!-- Audio elements for each page -->
+  <!-- Audio elements -->
   <audio id="mainMusic" loop>
     <source src="romantic_music.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
   </audio>
-  
   <audio id="yesMusic" loop>
     <source src="happy_music.mp3" type="audio/mpeg">
   </audio>
-  
   <audio id="noMusic" loop>
     <source src="sad_music.mp3" type="audio/mpeg">
   </audio>
@@ -163,15 +174,13 @@
     yesMusic.volume = 0.3;
     noMusic.volume = 0.3;
     
-    // Handle Chrome's autoplay policy
+    // Handle autoplay
     function startMusic() {
       const playPromise = mainMusic.play();
-      
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          document.body.addEventListener('click', function musicStarter() {
+        playPromise.catch(() => {
+          document.body.addEventListener('click', function() {
             mainMusic.play();
-            document.body.removeEventListener('click', musicStarter);
           }, { once: true });
         });
       }
@@ -183,10 +192,6 @@
     setTimeout(startMusic, 1000);
     
     function handleAnswer(answer) {
-      const mainImage = document.getElementById('mainImage');
-      const buttons = document.getElementById('buttons');
-      const content = document.querySelector('.content');
-
       // Fade out current music
       if (!mainMusic.paused) {
         const fadeOut = setInterval(() => {
@@ -207,7 +212,6 @@
     function changePage(answer) {
       const mainImage = document.getElementById('mainImage');
       const buttons = document.getElementById('buttons');
-      const questionText = document.getElementById('questionText');
       const content = document.querySelector('.content');
 
       content.style.transition = 'opacity 0.5s ease';
@@ -218,6 +222,7 @@
         
         if (answer === 'yes') {
           mainImage.src = 'YES.jpg';
+          mainImage.alt = 'Happy response image';
           questionText.innerHTML = "This isn't just a date—it's the beginning of something beautiful. I promise to make it unforgettable.";
           
           // Fade in yes music
@@ -232,6 +237,7 @@
           }, 100);
         } else {
           mainImage.src = 'NO.jpg';
+          mainImage.alt = 'Rejection response image';
           questionText.innerHTML = "Some stories aren't meant to be written... Still, thank you for being honest.";
           
           // Fade in no music
@@ -246,11 +252,18 @@
           }, 100);
         }
         
+        // Force redraw for image centering
+        setTimeout(() => {
+          mainImage.style.display = 'none';
+          mainImage.offsetHeight; // Trigger reflow
+          mainImage.style.display = 'block';
+        }, 50);
+        
         content.style.opacity = '1';
       }, 500);
     }
     
-    // Ensure images are loaded before showing to prevent flash
+    // Initial load
     window.addEventListener('load', function() {
       document.body.style.visibility = 'visible';
     });
